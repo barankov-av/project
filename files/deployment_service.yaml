@@ -1,0 +1,120 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app1
+  namespace: api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: app1
+  template:
+    metadata:
+      labels:
+        app: app1
+    spec:
+      containers:
+      - name: app1
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: app1-config
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: app1.conf
+        - name: app1-html
+          mountPath: /usr/share/nginx/html/app1
+        - name: nfs-volume
+          mountPath: /data
+      volumes:
+      - name: app1-config
+        configMap:
+          name: app1-config
+      - name: app1-html
+        configMap:
+          name: app1-html
+      - name: nfs-volume
+        persistentVolumeClaim:
+          claimName: nfs-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app1-service
+  namespace: api
+spec:
+  selector:
+    app: app1
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app2
+  namespace: api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: app2
+  template:
+    metadata:
+      labels:
+        app: app2
+    spec:
+      containers:
+      - name: app2
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: app2-config
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: app2.conf
+        - name: app2-html
+          mountPath: /usr/share/nginx/html/app2
+        - name: nfs-volume
+          mountPath: /data
+      volumes:
+      - name: app2-config
+        configMap:
+          name: app2-config
+      - name: app2-html
+        configMap:
+          name: app2-html
+      - name: nfs-volume
+        persistentVolumeClaim:
+          claimName: nfs-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app2-service
+  namespace: api
+spec:
+  selector:
+    app: app2
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-pvc
+  namespace: api
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi

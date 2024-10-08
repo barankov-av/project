@@ -1,0 +1,27 @@
+- name: Deploy Kubernetes resources
+  hosts: all
+  tasks:
+    - name: Create namespace
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../files/nm.yaml') }}"
+
+    - name: Create configmap_conf
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../files/configmap_conf.yaml') }}"
+
+    - name: Create configmap_html
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../files/configmap_html.yaml') }}"
+
+    - name: Deploy app1 and app2
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../files/deployment_service.yaml') }}"
+
+    - name: Create Ingress
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../files/ingress.yaml') }}"
